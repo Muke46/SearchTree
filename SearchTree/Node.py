@@ -7,6 +7,7 @@ class Node:
         self.heuristic = None
         self.actionCost = None #from parent to this
         self.ID = None
+        self.hash = None
 
     def add_child(self, child):
         self.childrens.append(child) #check if the child already exists?

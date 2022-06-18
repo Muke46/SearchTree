@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from SearchTree import Node
 import os
+import time
 '''
 import matplotlib.pyplot as plt
 from netgraph import Graph
@@ -10,11 +11,13 @@ class Tree(ABC):
     def __init__(self, rootNode):
         self.root = Node(rootNode)
         self.root.heuristic=self.getHeuristic(self.root)
-        self.root.actionCost=0 #?
+        self.root.actionCost=0
         self.fringe=[]
         self.fringe.append(self.root)
         self.ID = 0
         self.root.ID = self.ID
+        self.hashl=[]
+        self.depth = 0
     def getRoot(self):
         return self.root
     def getFringe(self):
@@ -26,6 +29,7 @@ class Tree(ABC):
         self.ID+=1
         n.ID=self.ID
         n.parent=parent
+        n.hash=hash(str(data))
         return n
     def removeNode(self, node):
         node.kill_node()
@@ -67,6 +71,16 @@ class Tree(ABC):
                         bestScore=score
                 self.fringe.remove(bestNode)
                 return bestNode
+            case 'IDDFS':
+                for el in self.fringe:
+                    if el.get_depth()<self.depth:
+                        self.fringe.remove(el)
+                        return el
+                #no node found at current depth
+                print("No solution at depth: "+str(self.depth))
+                self.depth+=1
+                
+                return self.chooseNextNode(searchtype)
         #return node
     def pathTo(self, node):
         path = []
@@ -79,9 +93,8 @@ class Tree(ABC):
         #return child list
         pass
     def deleteRepeats(self,childList, node, avoidRepeat):
-        lst=[]
         if(avoidRepeat!='None'):
-            for el in childList:
+            for el in list(childList): #iterate over a copy of the list
                 #print(el.data)
                 match avoidRepeat:
                     case "parent":
@@ -90,28 +103,17 @@ class Tree(ABC):
                             continue
                     case "path":
                         p = el.parent
-                        ok=0
                         while p:
                             if(p.data==el.data):
-                                ok=1
+                                childList.remove(el)
+                                break
                             p=p.parent
-                        if(ok==0):
-                            lst.append(el)
                         continue
                     case "currentTree": #check in the current search tree
-                        f=[self.root]
-                        ok=1
-                        while(len(f)>0 and ok==1):
-                            e=f.pop(0)
-                            if(e.data==el.data):
-                                childList.remove(el)
-                                ok=0
-                            for i in e.childrens:
-                                f.append(i)
-                        continue
+                        if el.hash in self.hashl:
+                            childList.remove(el)
                     case "Tree":
-                        pass #TODO #check if the node was ever added in the tree (even if it was deleted after) [need to keep the nodes or keep a list somewhere]
-        return lst
+                        pass #TODO #check if the node was ever added in the tree (even if it was deleted after) [need to keep the nodes or keep a list somewhere ->hash list?]
     def appendToFringe(self, childList, searchtype):
         match searchtype:
             case 'BFS':
@@ -129,10 +131,15 @@ class Tree(ABC):
                     el.heuristic=self.getHeuristic(el)
                     el.actionCost=self.getActionCost(el.parent, el)
                     self.fringe.append(el)
+            case 'IDDFS':
+               for el in childList:
+                    self.fringe.insert(0, el)
     def addChildsToTree(self, childList):
         for el in childList:
             el.parent.add_child(el)
+            self.hashl.append(el.hash)
     def find(self, goal=None, searchtype='BFS', avoidRepeat='path', print_steps='true', stepByStep='false', iteractionsLimit=-1):
+        start_time = time.time()
         if(goal!=None):
             self.goal=goal
         iterations=0
@@ -143,7 +150,7 @@ class Tree(ABC):
                 print("Fringe:")
                 tmplst=[]
                 for el in self.fringe:
-                    print("|-"+el.data+" \t[" + str(el.ID)+"]", end='')
+                    print("|-"+str(el.data)+" \t[" + str(el.ID)+"]", end='')
                     if (searchtype=='GreedyBFS'):
                         print(" \theuristic{" + str(round(el.heuristic,2))+ "}")
                     elif(searchtype=='A*'):
@@ -159,7 +166,11 @@ class Tree(ABC):
             #choose the next node
             Node=self.chooseNextNode(searchtype)
             if(print_steps=='true'):
-                print("Choosen node: "+str(Node.data))
+                print("Choosen node: "+str(Node.data),end='')
+                if searchtype=='A*':
+                    print(str(round(el.heuristic+el.actionCost,2)))
+                else:
+                    print("")
 
             #check if the node corresponds with our goal
             if(Node.data==self.goal): #success!
@@ -168,12 +179,16 @@ class Tree(ABC):
                     self.printTree()
                 print("Solution:", end=" ")
                 print(self.pathTo(Node))
-                input("Solution found with "+ str(iterations)+" steps! Press Enter to exit...")
+                print("Solution found with "+ str(iterations)+" steps!")
+                print("Elapsed time: "+str(round(time.time() - start_time,2))+" s")
+                print("Expanded nodes: " + str(self.ID))
+                print("Solution found at depth: " +str(Node.get_depth()))
+                input("Press Enter to exit...")
                 return self.pathTo(Node)
             #expand the node
             childs=self.expandNode(Node) #get the childs list
             
-            childs=self.deleteRepeats(childs, Node, avoidRepeat) #check if there are repeats in the same branch (if selected)
+            self.deleteRepeats(childs, Node, avoidRepeat) #check if there are repeats in the same branch (if selected)
             
             if(len(childs)>0):
                 self.addChildsToTree(childs)

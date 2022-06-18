@@ -25,7 +25,7 @@ class NPuzzleSearchTree (Tree):
 
     def getHeuristic(self, node):
         sum=0
-        for i in range(self.xDim*self.yDim):
+        for i in range(1,self.xDim*self.yDim):
             statey, statex = self.findN(i, node.data)
             goaly, goalx = self.findN(i, self.goal)
             sum+=abs(statey-goaly)+abs(statex-goalx)

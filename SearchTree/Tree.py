@@ -2,10 +2,7 @@ from abc import ABC, abstractmethod
 from SearchTree import Node
 import os
 import time
-'''
-import matplotlib.pyplot as plt
-from netgraph import Graph
-'''
+from operator import attrgetter
 
 class Tree(ABC):
     def __init__(self, rootNode):
@@ -17,7 +14,8 @@ class Tree(ABC):
         self.ID = 0
         self.root.ID = self.ID
         self.hashl=[]
-        self.depth = 0
+        self.depthLimit = 0
+        #self.scoreLimit
     def getRoot(self):
         return self.root
     def getFringe(self):
@@ -48,6 +46,7 @@ class Tree(ABC):
     @abstractmethod
     def getActionCost(self, beginNode, endNode):
         pass
+    
     def chooseNextNode(self, searchtype):
         match searchtype:
             case 'BFS':
@@ -62,6 +61,17 @@ class Tree(ABC):
                 self.fringe.remove(bestNode)
                 return bestNode
             case 'A*':
+                bestNode=self.fringe[0]
+                # bestScore = bestNode.heuristic+bestNode.actionCost
+                # for el in self.fringe:
+                #     score = el.heuristic + el.actionCost
+                #     if(score<bestScore):
+                #         bestNode=el
+                #         bestScore=score
+                bestNode = min(self.fringe, key=attrgetter('totalCost'))
+                self.fringe.remove(bestNode)
+                return bestNode
+            case 'IDA*':
                 bestNode=self.fringe[0]
                 bestScore = bestNode.heuristic+bestNode.actionCost
                 for el in self.fringe:
@@ -78,7 +88,7 @@ class Tree(ABC):
                         return el
                 #no node found at current depth
                 print("No solution at depth: "+str(self.depth))
-                self.depth+=1
+                self.depthLimit+=1
                 
                 return self.chooseNextNode(searchtype)
         #return node
@@ -114,6 +124,7 @@ class Tree(ABC):
                             childList.remove(el)
                     case "Tree":
                         pass #TODO #check if the node was ever added in the tree (even if it was deleted after) [need to keep the nodes or keep a list somewhere ->hash list?]
+    
     def appendToFringe(self, childList, searchtype):
         match searchtype:
             case 'BFS':
@@ -129,7 +140,8 @@ class Tree(ABC):
             case 'A*':
                 for el in childList:
                     el.heuristic=self.getHeuristic(el)
-                    el.actionCost=self.getActionCost(el.parent, el)
+                    el.actionCost=self.getActionCost(el.parent, el)+el.parent.actionCost
+                    el.totalCost=el.heuristic+el.actionCost
                     self.fringe.append(el)
             case 'IDDFS':
                for el in childList:
@@ -138,6 +150,7 @@ class Tree(ABC):
         for el in childList:
             el.parent.add_child(el)
             self.hashl.append(el.hash)
+    @profile
     def find(self, goal=None, searchtype='BFS', avoidRepeat='path', print_steps='true', stepByStep='false', iteractionsLimit=-1):
         start_time = time.time()
         if(goal!=None):
@@ -183,7 +196,7 @@ class Tree(ABC):
                 print("Elapsed time: "+str(round(time.time() - start_time,2))+" s")
                 print("Expanded nodes: " + str(self.ID))
                 print("Solution found at depth: " +str(Node.get_depth()))
-                input("Press Enter to exit...")
+                #input("Press Enter to exit...")
                 return self.pathTo(Node)
             #expand the node
             childs=self.expandNode(Node) #get the childs list

@@ -26,8 +26,8 @@ for i in range(16):
 print(start)
 tree = NPuzzleSearchTree(start)
 
-path = tree.find(searchtype='A*', avoidRepeat="currentTree", stepByStep='false', print_steps='false', iteractionsLimit=-1)
-# input("")
+path = tree.find(searchtype='IDDFS', avoidRepeat="currentTree", stepByStep='false', print_steps='false', iteractionsLimit=-1)
+input("press ENTER to autocomplete")
 # for el in path:
 #     print("->"+str(el))
 a=0

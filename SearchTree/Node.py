@@ -6,6 +6,7 @@ class Node:
         self.parent = None
         self.heuristic = None
         self.actionCost = None #from parent to this
+        self.totalCost = None
         self.ID = None
         self.hash = None
 

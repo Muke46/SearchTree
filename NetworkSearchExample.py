@@ -47,7 +47,7 @@ citiesCoords = {
 
 
 start = "Arad"
-goal  = "Neamt"
+goal  = "Bucharest"
 
 #Calculate the heuristic function from the coordinates
 heuristicFun = {}
@@ -58,5 +58,5 @@ for key in citiesCoords:
 tree = NetworkSearchTree(start, map, heuristicFun)
 
 
-path = tree.find(goal, searchtype='DFS', avoidRepeat="path", stepByStep='true', print_steps='true')
+path = tree.find(goal, searchtype='A*', avoidRepeat="path", stepByStep='false', print_steps='false')
 print(path)

@@ -1,3 +1,4 @@
+from math import sqrt
 import os.path
 import pygame as pg
 
@@ -5,26 +6,33 @@ import pygame as pg
 # Zoom with mousewheel, pan with left mouse button
 # Print a snapshot of the screen with "P"
 
-sprite_sheet = pg.image.load('D:\\Files\\Git\\SearchTree\\SearchTree\\sheet.jpg')
+sprite_sheet = pg.image.load('D:\\Files\\Git\\SearchTree\\SearchTree\\map2.png')
 SCREEN_WIDTH = sprite_sheet.get_rect().size[0]
 SCREEN_HEIGHT = sprite_sheet.get_rect().size[1]
-screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+screen = pg.display.set_mode((1600, 900))
 clock = pg.time.Clock()
 zoom_event = False
 scale_up = 1.2
 scale_down = 0.8
 
+map=dict()
+pos=dict()
 lst=[]
+circle_radious=10
+start=(0,0)
+startNode=None
+index=0
 
 class GameState:
     def __init__(self):
         self.tab = 1
-        self.zoom = 1
+        self.zoom = 0.5
         self.world_offset_x = 0
         self.world_offset_y = 0
         self.update_screen = True
         self.panning = False
         self.pan_start_pos = None
+        self.draw_line = False
         self.legacy_screen = pg.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
 
 
@@ -42,6 +50,11 @@ def screen_2_world(screen_x, screen_y):
     world_y = (screen_y / game_state.zoom) + game_state.world_offset_y
     return [world_x, world_y]
 
+def isOnNode(x,y):
+    for name,coords in pos.items():
+        if(sqrt(pow(coords[0]-x,2)+pow(coords[1]-y,2)))<circle_radious*2:
+            return name
+    return None
 
 # game loop
 loop = True
@@ -51,8 +64,15 @@ while loop:
     # Mouse screen coords
     mouse_x, mouse_y = pg.mouse.get_pos()
 
+    world_left, world_top = screen_2_world(0, 0)
+    mouse_x1=mouse_x/game_state.zoom+world_left
+    mouse_y1=mouse_y/game_state.zoom+world_top
+    
+
     # event handler
     for event in pg.event.get():
+        mouse_x1=mouse_x/game_state.zoom+world_left
+        mouse_y1=mouse_y/game_state.zoom+world_top
         if event.type == pg.QUIT:
             pg.quit()
         elif event.type == pg.KEYDOWN:
@@ -87,37 +107,64 @@ while loop:
                 game_state.panning = True
                 game_state.pan_start_pos = mouse_x, mouse_y
 
-            elif event.button ==1:
-                x=mouse_x/game_state.zoom+world_left
-                y=mouse_y/game_state.zoom+world_top
-                lst.append((x,y))
-                print(pg.mouse.get_pos())
+            elif event.button == 1:
+                n=isOnNode(mouse_x1,mouse_y1)
+                if n != None:
+                    game_state.draw_line=True
+                    start=(mouse_x1,mouse_y1)
+                    startNode=n
+
+                else:
+                    pos[index]=(mouse_x1,mouse_y1)
+                    map[index]=[]
+                    index+=1
+
+            elif event.button ==3 :
+                n=isOnNode(mouse_x1,mouse_y1)
+                if n != None:
+                    del pos[n]
+                    del map[n]
+                    for st,end in map.items(): #remove all transitions
+                        if n in end:
+                            end.remove(n)
 
         elif event.type == pg.MOUSEBUTTONUP:
             if event.button == 2 and game_state.panning:
                 # PAN STOP
                 game_state.panning = False
+            if event.button == 1 and game_state.draw_line:
+                # DRAW STOP
+                game_state.draw_line = False
+                n=isOnNode(mouse_x1,mouse_y1)
+                if n != None:
+                    map[n].append(startNode)
+                    map[startNode].append(n)
 
-    if game_state.panning:
-        # Pans the screen if the left mouse button is held
+
+
+    if game_state.panning:# Pans the screen if the left mouse button is held
         game_state.world_offset_x -= (mouse_x - game_state.pan_start_pos[0]) / game_state.zoom
         game_state.world_offset_y -= (mouse_y - game_state.pan_start_pos[1]) / game_state.zoom
         game_state.pan_start_pos = mouse_x, mouse_y
 
     # Draw the screen
     if game_state.tab == 1:
-        if game_state.update_screen:
-            # Updates the legacy screen if something has changed in the image data
-            game_state.legacy_screen.blit(sprite_sheet, (0, 0))
-            
-            game_state.update_screen = False
-
         # Sets variables for the section of the legacy screen to be zoomed
         world_left, world_top = screen_2_world(0, 0)
         world_right, world_bottom = SCREEN_WIDTH/game_state.zoom, SCREEN_HEIGHT/game_state.zoom
-        for el in lst:
-            pg.draw.circle(game_state.legacy_screen, (0, 0, 255), el, 10)
-        print(game_state.zoom)
+        game_state.legacy_screen.blit(sprite_sheet, (0, 0))
+        mouse_x1=mouse_x/game_state.zoom+world_left
+        mouse_y1=mouse_y/game_state.zoom+world_top
+        if game_state.draw_line:
+            start_x=start[0]/game_state.zoom+world_left
+            start_y=start[1]/game_state.zoom+world_left
+            pg.draw.line(game_state.legacy_screen, (0,0,255),start,(mouse_x1,mouse_y1),8)
+        for st,end in map.items():
+            for el in map[st]:
+                pg.draw.line(game_state.legacy_screen, (0,0,255),pos[st],pos[el],8)
+        for name,coords in pos.items():
+            pg.draw.circle(game_state.legacy_screen, (0, 0, 255), coords, circle_radious)
+            pg.draw.circle(game_state.legacy_screen, (255, 255, 255), coords, circle_radious-2)
         # Makes a temp surface with the dimensions of a smaller section of the legacy screen (for zooming).
         new_screen = pg.Surface((world_right, world_bottom))
         # Blits the smaller section of the legacy screen to the temp screen

@@ -9,8 +9,8 @@ class Tree(ABC):
         self.root = Node(rootNode)
         self.root.heuristic=self.getHeuristic(self.root)
         self.root.actionCost=0
-        self.fringe=[]
-        self.fringe.append(self.root)
+        self.root.totalCost=self.root.actionCost+self.root.heuristic
+        self.fringe=None
         self.ID = 0
         self.root.ID = self.ID
         self.hashl=[]
@@ -54,6 +54,12 @@ class Tree(ABC):
             case 'DFS':
                 return self.fringe.pop(0)
             case 'GreedyBFS':
+                i=0
+                while True:
+                    if i in self.fringe:
+                        if(len(self.fringe[i])>0):
+                            return self.fringe[i].pop(0)
+                    i+=1
                 bestNode=self.fringe[0]
                 for el in self.fringe:
                     if(el.heuristic<bestNode.heuristic):
@@ -61,16 +67,25 @@ class Tree(ABC):
                 self.fringe.remove(bestNode)
                 return bestNode
             case 'A*':
-                bestNode=self.fringe[0]
                 # bestScore = bestNode.heuristic+bestNode.actionCost
                 # for el in self.fringe:
                 #     score = el.heuristic + el.actionCost
                 #     if(score<bestScore):
                 #         bestNode=el
                 #         bestScore=score
-                bestNode = min(self.fringe, key=attrgetter('totalCost'))
-                self.fringe.remove(bestNode)
-                return bestNode
+                
+                #bestNode = min(self.fringe, key=attrgetter('totalCost'))
+                #self.fringe.remove(bestNode)
+                #return bestNode
+
+                i=0
+                while True:
+                    if i in self.fringe:
+                        if(len(self.fringe[i])>0):
+                            return self.fringe[i].pop(0)
+                    i+=1
+
+                
             case 'IDA*':
                 bestNode=self.fringe[0]
                 bestScore = bestNode.heuristic+bestNode.actionCost
@@ -136,13 +151,21 @@ class Tree(ABC):
             case 'GreedyBFS':
                 for el in childList:
                     el.heuristic=self.getHeuristic(el)
-                    self.fringe.append(el)
+                    if el.heuristic in self.fringe:
+                        self.fringe[el.heuristic].append(el)
+                    else:
+                        self.fringe[el.heuristic]=[el]
+                    #self.fringe.append(el)
             case 'A*':
                 for el in childList:
                     el.heuristic=self.getHeuristic(el)
                     el.actionCost=self.getActionCost(el.parent, el)+el.parent.actionCost
                     el.totalCost=el.heuristic+el.actionCost
-                    self.fringe.append(el)
+                    if el.totalCost in self.fringe:
+                        self.fringe[el.totalCost].append(el)
+                    else:
+                        self.fringe[el.totalCost]=[el]
+                    #self.fringe.append(el)
             case 'IDDFS':
                for el in childList:
                     self.fringe.insert(0, el)
@@ -150,11 +173,18 @@ class Tree(ABC):
         for el in childList:
             el.parent.add_child(el)
             self.hashl.append(el.hash)
-    @profile
+
     def find(self, goal=None, searchtype='BFS', avoidRepeat='path', print_steps='true', stepByStep='false', iteractionsLimit=-1):
         start_time = time.time()
         if(goal!=None):
             self.goal=goal
+
+        if searchtype=='A*' or searchtype=='GreedyBFS':
+            self.fringe=dict([(self.root.totalCost,[self.root])])
+        else:
+            self.fringe=[]
+            self.fringe.append(self.root)
+
         iterations=0
         while(1):
             if(print_steps=='true'):
@@ -162,14 +192,15 @@ class Tree(ABC):
                 self.printTree()
                 print("Fringe:")
                 tmplst=[]
-                for el in self.fringe:
-                    print("|-"+str(el.data)+" \t[" + str(el.ID)+"]", end='')
-                    if (searchtype=='GreedyBFS'):
-                        print(" \theuristic{" + str(round(el.heuristic,2))+ "}")
-                    elif(searchtype=='A*'):
-                        print( " \ttheuristic{" + str(round(el.heuristic,2))+ "} \tpath cost{"+str(round(el.actionCost,2))+"} \tsum{"+str(round(el.heuristic+el.actionCost,2))+"}")
-                    else:
-                        print("")
+
+                # for el in self.fringe:
+                #     print("|-"+str(el.data)+" \t[" + str(el.ID)+"]", end='')
+                #     if (searchtype=='GreedyBFS'):
+                #         print(" \theuristic{" + str(round(el.heuristic,2))+ "}")
+                #     elif(searchtype=='A*'):
+                #         print( " \ttheuristic{" + str(round(el.heuristic,2))+ "} \tpath cost{"+str(round(el.actionCost,2))+"} \tsum{"+str(round(el.heuristic+el.actionCost,2))+"}")
+                #     else:
+                #         print("")
 
             #check if we are at a dead end
             if (len(self.fringe)<1):
@@ -178,16 +209,18 @@ class Tree(ABC):
             
             #choose the next node
             Node=self.chooseNextNode(searchtype)
+            print("Choosen node: "+str(Node.data),end=' ')
+            print(str(round(Node.heuristicx,2)))
             if(print_steps=='true'):
                 print("Choosen node: "+str(Node.data),end='')
                 if searchtype=='A*':
-                    print(str(round(el.heuristic+el.actionCost,2)))
+                    print(str(round(Node.heuristic+Node.actionCost,2)))
                 else:
                     print("")
 
             #check if the node corresponds with our goal
             if(Node.data==self.goal): #success!
-                os.system('cls' if os.name == 'nt' else 'clear')
+                #os.system('cls' if os.name == 'nt' else 'clear')
                 if(print_steps=='true'):
                     self.printTree()
                 print("Solution:", end=" ")

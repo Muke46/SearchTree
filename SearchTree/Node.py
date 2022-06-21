@@ -28,7 +28,7 @@ class Node:
     def print_tree(self): #TODO remove from here
         spaces = '   |' * self.get_depth()
         prefix = spaces + "-" if self.parent else ""
-        print(prefix + str(self.data) + " [" + str(self.ID)+"]")
+        print(prefix + str(self.data) + " [" + str(self.totalCost)+"]")
         if self.childrens:
             for child in self.childrens:
                 child.print_tree()

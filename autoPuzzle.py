@@ -26,7 +26,7 @@ for i in range(16):
 print(start)
 tree = NPuzzleSearchTree(start)
 
-path = tree.find(searchtype='IDDFS', avoidRepeat="currentTree", stepByStep='false', print_steps='false', iteractionsLimit=-1)
+path = tree.find(searchtype='GreedyBFS', avoidRepeat="currentTree", stepByStep='false', print_steps='false', iteractionsLimit=-1)
 input("press ENTER to autocomplete")
 # for el in path:
 #     print("->"+str(el))

@@ -155,7 +155,7 @@ class Tree(ABC):
                         self.fringe[el.heuristic].append(el)
                     else:
                         self.fringe[el.heuristic]=[el]
-                    #self.fringe.append(el)
+
             case 'A*':
                 for el in childList:
                     el.heuristic=self.getHeuristic(el)
@@ -165,7 +165,7 @@ class Tree(ABC):
                         self.fringe[el.totalCost].append(el)
                     else:
                         self.fringe[el.totalCost]=[el]
-                    #self.fringe.append(el)
+
             case 'IDDFS':
                for el in childList:
                     self.fringe.insert(0, el)
@@ -176,15 +176,24 @@ class Tree(ABC):
 
     def find(self, goal=None, searchtype='BFS', avoidRepeat='path', print_steps='true', stepByStep='false', iteractionsLimit=-1):
         start_time = time.time()
+        
         if(goal!=None):
             self.goal=goal
+        else:
+            print("No goal given")
+            return []
 
-        if searchtype=='A*' or searchtype=='GreedyBFS':
+        #if the search is A* or GreedyBFS, initialize the fringe as a dictionary
+        #otherwise the firnge is a simple list
+        if searchtype=='A*':
             self.fringe=dict([(self.root.totalCost,[self.root])])
+        elif searchtype =='GreedyBFS':
+            self.fringe=dict([(self.root.heuristic,[self.root])])
         else:
             self.fringe=[]
             self.fringe.append(self.root)
 
+        #count the iteration to show stats at the end of the search or to limit them
         iterations=0
         while(1):
             if(print_steps=='true'):
@@ -193,14 +202,9 @@ class Tree(ABC):
                 print("Fringe:")
                 tmplst=[]
 
-                # for el in self.fringe:
-                #     print("|-"+str(el.data)+" \t[" + str(el.ID)+"]", end='')
-                #     if (searchtype=='GreedyBFS'):
-                #         print(" \theuristic{" + str(round(el.heuristic,2))+ "}")
-                #     elif(searchtype=='A*'):
-                #         print( " \ttheuristic{" + str(round(el.heuristic,2))+ "} \tpath cost{"+str(round(el.actionCost,2))+"} \tsum{"+str(round(el.heuristic+el.actionCost,2))+"}")
-                #     else:
-                #         print("")
+                if(searchtype=='A*' or searchtype=='GreedyBFS'):
+                    for key,el in self.fringe.items():
+                        print("|-"+str(el.data)+" \t[" + str(el.ID)+"] ("+str(key)+")")
 
             #check if we are at a dead end
             if (len(self.fringe)<1):
@@ -209,18 +213,19 @@ class Tree(ABC):
             
             #choose the next node
             Node=self.chooseNextNode(searchtype)
-            print("Choosen node: "+str(Node.data),end=' ')
-            print(str(round(Node.heuristicx,2)))
+
             if(print_steps=='true'):
                 print("Choosen node: "+str(Node.data),end='')
                 if searchtype=='A*':
-                    print(str(round(Node.heuristic+Node.actionCost,2)))
+                    print(str(round(Node.totalCost,2)))
+                elif searchtype=='GreedyBFS':
+                    print(str(round(Node.heuristic,2)))
                 else:
                     print("")
 
             #check if the node corresponds with our goal
             if(Node.data==self.goal): #success!
-                #os.system('cls' if os.name == 'nt' else 'clear')
+                os.system('cls' if os.name == 'nt' else 'clear') #clear terminal
                 if(print_steps=='true'):
                     self.printTree()
                 print("Solution:", end=" ")
@@ -229,21 +234,22 @@ class Tree(ABC):
                 print("Elapsed time: "+str(round(time.time() - start_time,2))+" s")
                 print("Expanded nodes: " + str(self.ID))
                 print("Solution found at depth: " +str(Node.get_depth()))
-                #input("Press Enter to exit...")
                 return self.pathTo(Node)
+            
             #expand the node
             childs=self.expandNode(Node) #get the childs list
             
-            self.deleteRepeats(childs, Node, avoidRepeat) #check if there are repeats in the same branch (if selected)
+            #check if there are repeats in the same branch (if selected)
+            self.deleteRepeats(childs, Node, avoidRepeat) 
             
             if(len(childs)>0):
                 self.addChildsToTree(childs)
-                self.appendToFringe(childs, searchtype)#append to fringe
+                self.appendToFringe(childs, searchtype) #append to fringe
             iterations+=1
             if(iteractionsLimit!=-1):
                 if(iterations>iteractionsLimit):
                     input("Reached iteractions limit, press ENTER to exit...")
-                    return None
+                    return []
             
             if(stepByStep=='true'):
                 input("Press Enter to continue...")

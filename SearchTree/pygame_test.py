@@ -1,6 +1,8 @@
 from math import sqrt
 import os.path
 import pygame as pg
+from pygame import gfxdraw
+import math
 
 # Place a picture called "sheet.png" in the same folder as this program!
 # Zoom with mousewheel, pan with left mouse button
@@ -9,7 +11,7 @@ import pygame as pg
 sprite_sheet = pg.image.load('D:\\Files\\Git\\SearchTree\\SearchTree\\map2.png')
 SCREEN_WIDTH = sprite_sheet.get_rect().size[0]
 SCREEN_HEIGHT = sprite_sheet.get_rect().size[1]
-screen = pg.display.set_mode((1600, 900))
+screen = pg.display.set_mode((800, 600)) #set_mode((1600, 900))
 clock = pg.time.Clock()
 zoom_event = False
 scale_up = 1.2
@@ -125,8 +127,9 @@ while loop:
                     del pos[n]
                     del map[n]
                     for st,end in map.items(): #remove all transitions
-                        if n in end:
-                            end.remove(n)
+                        for el in list(end):
+                            if el[0]==n:
+                                end.remove(el)
 
         elif event.type == pg.MOUSEBUTTONUP:
             if event.button == 2 and game_state.panning:
@@ -137,8 +140,11 @@ while loop:
                 game_state.draw_line = False
                 n=isOnNode(mouse_x1,mouse_y1)
                 if n != None:
-                    map[n].append(startNode)
-                    map[startNode].append(n)
+                    dist=math.dist(list(pos[startNode]),list(pos[n]))
+                    map[n].append((startNode,dist))
+                    map[startNode].append((n,dist))
+                    print(map)
+                    
 
 
 
@@ -161,9 +167,10 @@ while loop:
             pg.draw.line(game_state.legacy_screen, (0,0,255),start,(mouse_x1,mouse_y1),8)
         for st,end in map.items():
             for el in map[st]:
-                pg.draw.line(game_state.legacy_screen, (0,0,255),pos[st],pos[el],8)
+                pg.draw.line(game_state.legacy_screen, (0,0,255),pos[st],pos[int(el[0])],8)
         for name,coords in pos.items():
             pg.draw.circle(game_state.legacy_screen, (0, 0, 255), coords, circle_radious)
+            #gfxdraw.aacircle(game_state.legacy_screen,int(coords[0]+30),int(coords[1]),circle_radious,(0, 0, 255))
             pg.draw.circle(game_state.legacy_screen, (255, 255, 255), coords, circle_radious-2)
         # Makes a temp surface with the dimensions of a smaller section of the legacy screen (for zooming).
         new_screen = pg.Surface((world_right, world_bottom))

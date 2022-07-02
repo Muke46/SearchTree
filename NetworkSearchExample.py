@@ -23,39 +23,33 @@ map = {
     "Neamt":          [("Iasi",87)]
     }   
 citiesCoords = {
-    "Arad" :          (107,254),
-    "Zerind" :        (154,146),
-    "Timisoara" :     (115,477),
-    "Oradea" :        (216,40),
-    "Sibiu"  :        (423,346),
-    "Lugoj"  :        (307,561),
-    "Mehadia":        (315,668),
-    "Drobeta":        (308,777),
-    "Craiova":        (547,808),
-    "Rimnicu Vilcea": (491,476),
-    "Fagaras":        (692,368),
-    "Pitesti":        (731,592),
-    "Bucharest":      (947,700),
-    "Giurgiu":        (875,854),
-    "Urziceni":       (1100,638),
-    "Hirsova":        (1308,640),
-    "Eforie":         (1386,792),
-    "Vaslui":         (1242,383),
-    "Iasi":           (1144,213),
-    "Neamt":          (961,132)
+    "Arad":             (41,98),
+    "Zerind":           (59,56),
+    "Timisoara":        (44,184),
+    "Oradea":           (83,15),
+    "Sibiu":            (163,133),
+    "Lugoj":            (118,216),
+    "Mehadia":          (121,257),
+    "Drobeta":          (118,300),
+    "Craiova":          (211,311),
+    "Rimnicu Vilcea":   (189,183),
+    "Fagaras":          (267,142),
+    "Pitesti":          (282,228),
+    "Bucharest":        (365,270),
+    "Giurgiu":          (337,329),
+    "Urziceni":         (424,246),
+    "Hirsova":          (505,247),
+    "Eforie":           (535,305),
+    "Vaslui":           (479,147),
+    "Iasi":             (441,82),
+    "Neamt":            (371,50)
     }
 
 
 start = "Arad"
 goal  = "Bucharest"
 
-#Calculate the heuristic function from the coordinates
-heuristicFun = {}
-for key in citiesCoords:
-    heuristicFun[key] = (abs(citiesCoords[key][0]-citiesCoords[goal][0])+abs(citiesCoords[key][1]-citiesCoords[goal][1]))*0.26803 #scaling factor to make the calculated heuristic closer to the real distances
-
-
-tree = NetworkSearchTree(start, map, heuristicFun)
+tree = NetworkSearchTree(start, map, citiesCoords)
 
 
 path = tree.find(goal, searchtype='A*', avoidRepeat="path", stepByStep='false', print_steps='false')

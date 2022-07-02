@@ -25,12 +25,6 @@ class NPuzzleSearchTree (Tree):
         return goal
     
     def getHeuristic(self, node):
-        # sum=0
-        # for i in range(1,self.xDim*self.yDim):
-        #     statey, statex = self.findN(i, node.data)
-        #     goaly, goalx = self.findN(i, self.goal)
-        #     sum+=abs(statey-goaly)+abs(statex-goalx)
-        # return sum
         sum = 0
         for y,row in enumerate(node.data):
             for x, val in enumerate(row):
@@ -50,7 +44,7 @@ class NPuzzleSearchTree (Tree):
                 return i, e.index(n)
             except ValueError:
                 pass
-        raise ValueError("{!r} is not in list".format(0)) #??
+        raise ValueError("{!r} is not in list".format(0))
     
     def expandNode(self, node):
         childList=[]

@@ -8,14 +8,15 @@ class Node:
         self.actionCost = None #from parent to this
         self.totalCost = None
         self.ID = None
-        self.hash = None
+        self.hash = hash(str(self.data))
 
     def add_child(self, child):
         self.childrens.append(child) #check if the child already exists?
         child.parent=self
 
     def kill_node(self):
-        self.parent.childrens.remove(self)
+        if self.parent != None:
+            self.parent.childrens.remove(self)
     
     def get_depth(self):
         depth = 0
@@ -28,7 +29,7 @@ class Node:
     def print_tree(self): #TODO remove from here
         spaces = '   |' * self.get_depth()
         prefix = spaces + "-" if self.parent else ""
-        print(prefix + str(self.data) + " [" + str(self.totalCost)+"]")
+        print(prefix + str(self.data) + " [" + str(self.ID)+"]")
         if self.childrens:
             for child in self.childrens:
                 child.print_tree()

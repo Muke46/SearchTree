@@ -2,17 +2,18 @@ from SearchTree import Node, Tree
 import math
 class NetworkSearchTree(Tree):
     def __init__(self, rootNode, networkAdjList, citiesCoords=None):
+        super().__init__(rootNode)
         self.network=networkAdjList
         if citiesCoords==None:
             print("Warning, cities coordinates not specified, A* and GreedyBFS will not work")
         self.coords=citiesCoords
-        super().__init__(rootNode)
+        
         
     def getHeuristic(self, node):
-        if self.coords != None:
-            return math.dist( list(self.coords(self.root.data)), list(self.coords(node.data)) )
+        if self.coords != None and self.goal != None:
+            return int(math.dist( list(self.coords[self.goal]), list(self.coords[node.data]) ))
         else:
-            return 0 #fallback in case coords was not specified
+            raise Exception("coords or goal not specified")
 
     def getActionCost(self, beginNode, endNode):
         lst=[item for item in self.network[beginNode.data] if item[0] == endNode.data]

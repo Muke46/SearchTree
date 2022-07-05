@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+
 from SearchTree import Node
 import os
 import time
@@ -7,13 +8,11 @@ from operator import attrgetter
 class Tree(ABC):
     def __init__(self, rootNode):
         self.root = Node(rootNode)
-        self.root.heuristic=self.getHeuristic(self.root)
-        self.root.actionCost=0
-        self.root.totalCost=self.root.actionCost+self.root.heuristic
+        self.goal=None
         self.fringe=None
         self.ID = 0
         self.root.ID = self.ID
-        self.hashl=[]
+        self.hashl=[self.root.hash]
         self.depthLimit = 0
         #self.scoreLimit
     def getRoot(self):
@@ -27,7 +26,6 @@ class Tree(ABC):
         self.ID+=1
         n.ID=self.ID
         n.parent=parent
-        n.hash=hash(str(data))
         return n
     def removeNode(self, node):
         node.kill_node()
@@ -40,6 +38,11 @@ class Tree(ABC):
         return depth
     def printTree(self):  #TODO remove from the node class
         self.root.print_tree()
+    def resetTree(self):
+        self.root.childrens=[]
+        self.fringe=[self.root]
+        self.hashl=[]
+        self.ID=0
     @abstractmethod
     def getHeuristic(self, node):
         pass
@@ -47,19 +50,13 @@ class Tree(ABC):
     def getActionCost(self, beginNode, endNode):
         pass
     
-    def chooseNextNode(self, searchtype):
+    def chooseNextNode(self, searchtype, print_steps):
         match searchtype:
             case 'BFS':
                 return self.fringe.pop(0)
             case 'DFS':
                 return self.fringe.pop(0)
             case 'GreedyBFS':
-                i=0
-                while True:
-                    if i in self.fringe:
-                        if(len(self.fringe[i])>0):
-                            return self.fringe[i].pop(0)
-                    i+=1
                 bestNode=self.fringe[0]
                 for el in self.fringe:
                     if(el.heuristic<bestNode.heuristic):
@@ -67,46 +64,37 @@ class Tree(ABC):
                 self.fringe.remove(bestNode)
                 return bestNode
             case 'A*':
-                # bestScore = bestNode.heuristic+bestNode.actionCost
-                # for el in self.fringe:
-                #     score = el.heuristic + el.actionCost
-                #     if(score<bestScore):
-                #         bestNode=el
-                #         bestScore=score
-                
-                #bestNode = min(self.fringe, key=attrgetter('totalCost'))
-                #self.fringe.remove(bestNode)
-                #return bestNode
-
-                i=0
-                while True:
-                    if i in self.fringe:
-                        if(len(self.fringe[i])>0):
-                            return self.fringe[i].pop(0)
-                    i+=1
-
-                
-            case 'IDA*':
                 bestNode=self.fringe[0]
-                bestScore = bestNode.heuristic+bestNode.actionCost
                 for el in self.fringe:
-                    score = el.heuristic + el.actionCost
-                    if(score<bestScore):
+                    if(el.totalCost<bestNode.totalCost):
                         bestNode=el
-                        bestScore=score
                 self.fringe.remove(bestNode)
                 return bestNode
-            case 'IDDFS':
+            case 'IDA*':
                 for el in self.fringe:
-                    if el.get_depth()<self.depth:
+                    if(el.totalCost<=self.ALimit):
                         self.fringe.remove(el)
                         return el
-                #no node found at current depth
-                print("No solution at depth: "+str(self.depth))
+                if print_steps=='true':
+                    print("Nothing found with cost:"+str(self.ALimit))
+                    #delete current tree
+                self.ALimit = self.fringe[0].totalCost
+                for el in self.fringe:
+                    if el.totalCost<self.ALimit:
+                        self.ALimit=el.totalCost
+                self.resetTree()
+                return self.chooseNextNode(searchtype, print_steps)
+            case 'IDDFS':
+                for el in self.fringe:
+                    if(el.get_depth()<=self.depthLimit):
+                        self.fringe.remove(el)
+                        return el
+                if print_steps=='true':
+                    print("Nothing found at depth:"+str(self.depthLimit))
+                #delete current tree
+                self.resetTree()
                 self.depthLimit+=1
-                
-                return self.chooseNextNode(searchtype)
-        #return node
+                return self.chooseNextNode(searchtype, print_steps)
     def pathTo(self, node):
         path = []
         while node:
@@ -138,37 +126,29 @@ class Tree(ABC):
                         if el.hash in self.hashl:
                             childList.remove(el)
                     case "Tree":
-                        pass #TODO #check if the node was ever added in the tree (even if it was deleted after) [need to keep the nodes or keep a list somewhere ->hash list?]
+                        if el.hash in self.hashl:
+                            childList.remove(el)
     
     def appendToFringe(self, childList, searchtype):
         match searchtype:
             case 'BFS':
                 for el in childList:
                     self.fringe.append(el)
-            case 'DFS':
+            case 'DFS' | 'IDDFS':
                for el in childList:
                     self.fringe.insert(0, el)
             case 'GreedyBFS':
                 for el in childList:
                     el.heuristic=self.getHeuristic(el)
-                    if el.heuristic in self.fringe:
-                        self.fringe[el.heuristic].append(el)
-                    else:
-                        self.fringe[el.heuristic]=[el]
+                    self.fringe.append(el)
 
-            case 'A*':
+            case 'A*' | 'IDA*':
                 for el in childList:
                     el.heuristic=self.getHeuristic(el)
                     el.actionCost=self.getActionCost(el.parent, el)+el.parent.actionCost
                     el.totalCost=el.heuristic+el.actionCost
-                    if el.totalCost in self.fringe:
-                        self.fringe[el.totalCost].append(el)
-                    else:
-                        self.fringe[el.totalCost]=[el]
+                    self.fringe.append(el)
 
-            case 'IDDFS':
-               for el in childList:
-                    self.fringe.insert(0, el)
     def addChildsToTree(self, childList):
         for el in childList:
             el.parent.add_child(el)
@@ -177,34 +157,43 @@ class Tree(ABC):
     def find(self, goal=None, searchtype='BFS', avoidRepeat='path', print_steps='true', stepByStep='false', iteractionsLimit=-1):
         start_time = time.time()
         
-        if(goal!=None):
-            self.goal=goal
-        else:
+        if goal!= None: self.goal=goal
+
+        if self.goal==None:
             print("No goal given")
             return []
 
-        #if the search is A* or GreedyBFS, initialize the fringe as a dictionary
-        #otherwise the firnge is a simple list
-        if searchtype=='A*':
-            self.fringe=dict([(self.root.totalCost,[self.root])])
-        elif searchtype =='GreedyBFS':
-            self.fringe=dict([(self.root.heuristic,[self.root])])
-        else:
-            self.fringe=[]
-            self.fringe.append(self.root)
+        if searchtype in ['A*', 'IDA*', 'GreedyBFS']:
+            self.root.heuristic=self.getHeuristic(self.root)
+        if searchtype in ['A*', 'IDA*']:
+            self.root.actionCost=0
+            self.root.totalCost=self.root.actionCost+self.root.heuristic
+        if searchtype == 'IDA*':
+            self.ALimit = self.root.totalCost
+
+        self.fringe=[self.root]
 
         #count the iteration to show stats at the end of the search or to limit them
         iterations=0
+
+        #for memory usage stats
+        removed_nodes=0 
+        max_nodes=0
         while(1):
             if(print_steps=='true'):
                 print("Step: "+str(iterations))
+                if searchtype=='IDDFS':
+                    print("Depth Limit: "+str(self.depthLimit))
+                if searchtype=='IDA*':
+                    print("Cost Limit: "+str(self.ALimit))
                 self.printTree()
                 print("Fringe:")
-                tmplst=[]
-
-                if(searchtype=='A*' or searchtype=='GreedyBFS'):
-                    for key,el in self.fringe.items():
-                        print("|-"+str(el.data)+" \t[" + str(el.ID)+"] ("+str(key)+")")
+                for el in self.fringe:
+                    print("|-"+str(el.data)+" \t[ID:" + str(el.ID)+"] ", end='')
+                    if searchtype=="BFS" or searchtype=="DFS" or searchtype=="IDDFS":
+                         print("(depth: "+str(el.get_depth())+")")
+                    elif searchtype=="A*" or searchtype=="IDA*":
+                        print("tcost:"+str(el.totalCost)+")")
 
             #check if we are at a dead end
             if (len(self.fringe)<1):
@@ -212,7 +201,7 @@ class Tree(ABC):
                 return []
             
             #choose the next node
-            Node=self.chooseNextNode(searchtype)
+            Node=self.chooseNextNode(searchtype, print_steps)
 
             if(print_steps=='true'):
                 print("Choosen node: "+str(Node.data),end='')
@@ -233,6 +222,7 @@ class Tree(ABC):
                 print("Solution found with "+ str(iterations)+" steps!")
                 print("Elapsed time: "+str(round(time.time() - start_time,2))+" s")
                 print("Expanded nodes: " + str(self.ID))
+                print("Max nodes in memory: "+str(max_nodes))
                 print("Solution found at depth: " +str(Node.get_depth()))
                 return self.pathTo(Node)
             
@@ -245,7 +235,22 @@ class Tree(ABC):
             if(len(childs)>0):
                 self.addChildsToTree(childs)
                 self.appendToFringe(childs, searchtype) #append to fringe
+            else:
+               #if a node have no childs it can be removed from the tree
+                n=Node
+                while n.parent != None: #prune the dead branch, if any
+                    n.kill_node()
+                    removed_nodes+=1
+                    if avoidRepeat != "Tree":
+                        self.hashl.remove(n.hash)
+                    if len(n.parent.childrens)==0: #if the parent have no childs we can delete it
+                        n=n.parent
+                    else:
+                        break
             iterations+=1
+            if (self.ID-removed_nodes)>max_nodes:
+                max_nodes=self.ID-removed_nodes
+
             if(iteractionsLimit!=-1):
                 if(iterations>iteractionsLimit):
                     input("Reached iteractions limit, press ENTER to exit...")

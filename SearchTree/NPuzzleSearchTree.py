@@ -4,13 +4,13 @@ import ujson
 
 class NPuzzleSearchTree (Tree):
     def __init__(self, rootNode):
-        
+        super().__init__(rootNode)
         self.h_fun = None
         self.xDim = len(rootNode[0])
         self.yDim = len(rootNode)
         self.goal = self.generateGoal()
         print(self.goal)
-        super().__init__(rootNode)
+        
         
     def generateGoal(self):
         goal = []

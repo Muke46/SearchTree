@@ -5,14 +5,14 @@ map = {
     "Zerind" :        [("Arad",75),("Oradea",71)],
     "Timisoara" :     [("Arad",118),("Lugoj",111)],
     "Oradea" :        [("Zerind",71),("Sibiu",151)],
-    "Sibiu"  :        [("Arad",140),("Oradea",151),("Rimnicu Vilcea",80),("Fagaras",99)],
+    "Sibiu"  :        [("Arad",140),("Oradea",151),("Rimnicu Vil.",80),("Fagaras",99)],
     "Lugoj"  :        [("Timisoara",111),("Mehadia",70)],
     "Mehadia":        [("Lugoj",70),("Drobeta",75)],
     "Drobeta":        [("Mehadia",75),("Craiova",120)],
-    "Craiova":        [("Drobeta",120),("Rimnicu Vilcea",146),("Pitesti",138)],
-    "Rimnicu Vilcea": [("Sibiu",80),("Craiova",146),("Pitesti",97)],
+    "Craiova":        [("Drobeta",120),("Rimnicu Vil.",146),("Pitesti",138)],
+    "Rimnicu Vil.":   [("Sibiu",80),("Craiova",146),("Pitesti",97)],
     "Fagaras":        [("Sibiu",99),("Bucharest",211)],
-    "Pitesti":        [("Rimnicu Vilcea",97),("Craiova",138),("Bucharest",101)],
+    "Pitesti":        [("Rimnicu Vil.",97),("Craiova",138),("Bucharest",101)],
     "Bucharest":      [("Fagaras",211),("Giurgiu",90),("Pitesti",101),("Urziceni",85)],
     "Giurgiu":        [("Bucharest",90)],
     "Urziceni":       [("Bucharest",85),("Hirsova",98),("Vaslui",142)],
@@ -32,7 +32,7 @@ citiesCoords = {
     "Mehadia":          (121,257),
     "Drobeta":          (118,300),
     "Craiova":          (211,311),
-    "Rimnicu Vilcea":   (189,183),
+    "Rimnicu Vil.":   (189,183),
     "Fagaras":          (267,142),
     "Pitesti":          (282,228),
     "Bucharest":        (365,270),
@@ -47,10 +47,10 @@ citiesCoords = {
 
 
 start = "Arad"
-goal  = "Bucharest"
+goal  = "Neamt"
 
 tree = NetworkSearchTree(start, map, citiesCoords)
 
 
-path = tree.find(goal, searchtype='A*', avoidRepeat="path", stepByStep='false', print_steps='false')
+path = tree.find(goal, searchtype='A*', avoidRepeat="path", stepByStep='true', print_steps='true')
 print(path)

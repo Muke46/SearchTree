@@ -52,5 +52,5 @@ goal  = "Neamt"
 tree = NetworkSearchTree(start, map, citiesCoords)
 
 
-path = tree.find(goal, searchtype='A*', avoidRepeat="path", stepByStep='true', print_steps='true')
+path = tree.find(goal, searchtype='A*', avoidRepeat="path", stepByStep=True, print_steps=True)
 print(path)

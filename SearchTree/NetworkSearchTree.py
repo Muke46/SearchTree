@@ -25,6 +25,10 @@ class NetworkSearchTree(Tree):
     def expandNode(self, node):
         childList=[]
         for child in self.network[node.data]:
-            n = self.newNode(child[0], node)
+            n = Node(child[0])
+            n.parent=node
+
             childList.append(n)
         return childList
+    def showVisualization(self, node):
+        pass

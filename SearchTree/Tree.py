@@ -1,34 +1,42 @@
 from abc import ABC, abstractmethod
+from pickle import FALSE
 
 from SearchTree import Node
 import os
 import time
-from operator import attrgetter
 
 class Tree(ABC):
     def __init__(self, rootNode):
         self.root = Node(rootNode)
         self.goal=None
         self.fringe=None
-        self.ID = 0
-        self.root.ID = self.ID
-        self.hashl=[self.root.hash]
-        self.depthLimit = 0
+        self.ID = 0 #every node has an unique ID
+        self.root.ID = self.ID #the root node have ID=0
+        self.ID+=1
+        self.hashl=[self.root.hash] #hash list of the current tree to speed up duplicate searches
+        self.depthLimit = 0 #used for IDDF searches
         #self.scoreLimit
+
     def getRoot(self):
         return self.root
+
     def getFringe(self):
         return self.fringe
+
     def addNode(self, node):
         node.parent.add_child(node)
-    def newNode(self, data, parent):
-        n=Node(data)
-        self.ID+=1
-        n.ID=self.ID
-        n.parent=parent
-        return n
+
+    def addChildsToTree(self, childList):
+        for el in childList:
+            el.parent.add_child(el)
+            self.hashl.append(el.hash)
+            el.ID=self.ID
+            self.ID+=1
+
+
     def removeNode(self, node):
         node.kill_node()
+
     def getNodeDepth(self, node):
         depth=0
         p = node.parent
@@ -36,13 +44,16 @@ class Tree(ABC):
             depth += 1
             p = p.parent
         return depth
+
     def printTree(self):  #TODO remove from the node class
         self.root.print_tree()
+
     def resetTree(self):
         self.root.childrens=[]
         self.fringe=[self.root]
         self.hashl=[]
         self.ID=0
+
     @abstractmethod
     def getHeuristic(self, node):
         pass
@@ -54,8 +65,10 @@ class Tree(ABC):
         match searchtype:
             case 'BFS':
                 return self.fringe.pop(0)
+
             case 'DFS':
                 return self.fringe.pop(0)
+
             case 'GreedyBFS':
                 bestNode=self.fringe[0]
                 for el in self.fringe:
@@ -63,44 +76,56 @@ class Tree(ABC):
                         bestNode=el
                 self.fringe.remove(bestNode)
                 return bestNode
+
             case 'A*':
+                #initialize "bestNode" to the first node
                 bestNode=self.fringe[0]
-                for el in self.fringe:
+                #loop though the list to find a better node
+                for el in self.fringe: 
                     if(el.totalCost<bestNode.totalCost):
                         bestNode=el
+                #remove the node from the list and return it
                 self.fringe.remove(bestNode)
                 return bestNode
+
             case 'IDA*':
+                #search for a node that have a totalCost below the current limit
                 for el in self.fringe:
-                    if(el.totalCost<=self.ALimit):
+                    if el.totalCost<=self.ALimit:
                         self.fringe.remove(el)
                         return el
-                if print_steps=='true':
-                    print("Nothing found with cost:"+str(self.ALimit))
-                    #delete current tree
+                #no node satisfies the condition
+                if print_steps: print("Nothing found with cost:"+str(self.ALimit))
+                
+                #pick a new limit
                 self.ALimit = self.fringe[0].totalCost
                 for el in self.fringe:
                     if el.totalCost<self.ALimit:
                         self.ALimit=el.totalCost
+            
+                #delete current tree
                 self.resetTree()
                 return self.chooseNextNode(searchtype, print_steps)
+                
             case 'IDDFS':
                 for el in self.fringe:
                     if(el.get_depth()<=self.depthLimit):
                         self.fringe.remove(el)
                         return el
-                if print_steps=='true':
+                if print_steps:
                     print("Nothing found at depth:"+str(self.depthLimit))
                 #delete current tree
                 self.resetTree()
                 self.depthLimit+=1
                 return self.chooseNextNode(searchtype, print_steps)
+
     def pathTo(self, node):
         path = []
         while node:
             path.insert(0,node.data) #append in front
             node=node.parent
         return path
+        
     @abstractmethod
     def expandNode(self, node):
         #return child list
@@ -148,14 +173,12 @@ class Tree(ABC):
                     el.actionCost=self.getActionCost(el.parent, el)+el.parent.actionCost
                     el.totalCost=el.heuristic+el.actionCost
                     self.fringe.append(el)
+    @abstractmethod
+    def showVisualization(self, node):
+        pass
 
-    def addChildsToTree(self, childList):
-        for el in childList:
-            el.parent.add_child(el)
-            self.hashl.append(el.hash)
-
-    def find(self, goal=None, searchtype='BFS', avoidRepeat='path', print_steps='true', stepByStep='false', iteractionsLimit=-1):
-        start_time = time.time()
+    def find(self, goal=None, searchtype='BFS', avoidRepeat='path', print_steps=False, stepByStep=False, showVisualization=False, iteractionsLimit=-1):
+        start_time = time.time() #save the starting time
         
         if goal!= None: self.goal=goal
 
@@ -180,7 +203,7 @@ class Tree(ABC):
         removed_nodes=0 
         max_nodes=0
         while(1):
-            if(print_steps=='true'):
+            if(print_steps):
                 print("Step: "+str(iterations))
                 if searchtype=='IDDFS':
                     print("Depth Limit: "+str(self.depthLimit))
@@ -193,7 +216,11 @@ class Tree(ABC):
                     if searchtype=="BFS" or searchtype=="DFS" or searchtype=="IDDFS":
                          print("(depth: "+str(el.get_depth())+")")
                     elif searchtype=="A*" or searchtype=="IDA*":
-                        print("tcost:"+str(el.totalCost)+")")
+                        print("Action Cost:"+str(el.actionCost)+" Heuristic:"+str(el.heuristic)+" Total:"+str(el.totalCost))
+
+            if(showVisualization):
+                if iterations%300==0:
+                    self.showVisualization()
 
             #check if we are at a dead end
             if (len(self.fringe)<1):
@@ -203,7 +230,7 @@ class Tree(ABC):
             #choose the next node
             Node=self.chooseNextNode(searchtype, print_steps)
 
-            if(print_steps=='true'):
+            if(print_steps):
                 print("Choosen node: "+str(Node.data),end='')
                 if searchtype=='A*':
                     print(str(round(Node.totalCost,2)))
@@ -215,7 +242,7 @@ class Tree(ABC):
             #check if the node corresponds with our goal
             if(Node.data==self.goal): #success!
                 os.system('cls' if os.name == 'nt' else 'clear') #clear terminal
-                if(print_steps=='true'):
+                if(print_steps):
                     self.printTree()
                 print("Solution:", end=" ")
                 print(self.pathTo(Node))
@@ -233,6 +260,9 @@ class Tree(ABC):
             self.deleteRepeats(childs, Node, avoidRepeat) 
             
             if(len(childs)>0):
+                #if searchtype=='A*':
+                #    for ch in childs:
+                #        ch.
                 self.addChildsToTree(childs)
                 self.appendToFringe(childs, searchtype) #append to fringe
             else:
@@ -253,10 +283,10 @@ class Tree(ABC):
 
             if(iteractionsLimit!=-1):
                 if(iterations>iteractionsLimit):
-                    input("Reached iteractions limit, press ENTER to exit...")
+                    input("Reached interactions limit, press ENTER to exit...")
                     return []
             
-            if(stepByStep=='true'):
+            if(stepByStep):
                 input("Press Enter to continue...")
                 os.system('cls' if os.name == 'nt' else 'clear')
 

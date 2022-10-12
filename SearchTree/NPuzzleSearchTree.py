@@ -52,37 +52,35 @@ class NPuzzleSearchTree (Tree):
         #check left
         if(x>0):
             tmp=ujson.loads(ujson.dumps(node.data))
-            #tmp=copy.deepcopy(node.data)
             tmp[y][x]=tmp[y][x-1]
             tmp[y][x-1]=0
-            newNode = self.newNode(tmp, node)
+            newNode = Node(tmp)
             newNode.parent=node
             childList.append(newNode)
         #check up
         if(y>0):
             tmp=ujson.loads(ujson.dumps(node.data))
-            #tmp=copy.deepcopy(node.data)
             tmp[y][x]=tmp[y-1][x]
             tmp[y-1][x]=0
-            newNode = self.newNode(tmp, node)
+            newNode = Node(tmp)
             newNode.parent=node
             childList.append(newNode)
         #check right
         if(x<self.xDim-1):
             tmp=ujson.loads(ujson.dumps(node.data))
-            #tmp=copy.deepcopy(node.data)
             tmp[y][x]=tmp[y][x+1]
             tmp[y][x+1]=0
-            newNode = self.newNode(tmp, node)
+            newNode = Node(tmp)
             newNode.parent=node
             childList.append(newNode)
         #check down
         if(y<self.yDim-1):
             tmp=ujson.loads(ujson.dumps(node.data))
-            #tmp=copy.deepcopy(node.data)
             tmp[y][x]=tmp[y+1][x]
             tmp[y+1][x]=0
-            newNode = self.newNode(tmp, node)
+            newNode = Node(tmp)
             newNode.parent=node
             childList.append(newNode)
         return childList
+    def showVisualization(self, node):
+        pass

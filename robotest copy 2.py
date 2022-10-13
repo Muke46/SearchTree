@@ -8,7 +8,8 @@ import math
 from matplotlib.widgets import RadioButtons
 from matplotlib.widgets import Button
 
-path = "D:\Git\SearchTree\Resources\home_map_exp3.png"
+path = "Resources\home_map_exp3.png"
+#path = "Resources\maze2.png"
 
 class PathFinding(Tree):
     def __init__(self, rootNode, path):
@@ -97,7 +98,7 @@ class PathFinding(Tree):
         self.vismap[self.goal[0]][self.goal[1]] = [0., 1., 0., 1.]
         self.im.set_data(self.vismap)
         self.fig.canvas.draw_idle()
-        plt.pause(1/10)
+        plt.pause(0.1)
 
     def expandNode(self, node):
         if self.showVisualization:

@@ -16,6 +16,7 @@ class Tree(ABC):
         self.hashl=[self.root.hash] #hash list of the current tree to speed up duplicate searches
         self.depthLimit = 0 #used for IDDF searches
         #self.scoreLimit
+        self.showVisualization=False
 
     def getRoot(self):
         return self.root
@@ -174,12 +175,13 @@ class Tree(ABC):
                     el.totalCost=el.heuristic+el.actionCost
                     self.fringe.append(el)
     @abstractmethod
-    def showVisualization(self, node):
+    def updateVisualization(self, node):
         pass
 
     def find(self, goal=None, searchtype='BFS', avoidRepeat='path', print_steps=False, stepByStep=False, showVisualization=False, iteractionsLimit=-1):
         start_time = time.time() #save the starting time
         
+        self.showVisualization=showVisualization
         if goal!= None: self.goal=goal
 
         if self.goal==None:
@@ -218,10 +220,6 @@ class Tree(ABC):
                     elif searchtype=="A*" or searchtype=="IDA*":
                         print("Action Cost:"+str(el.actionCost)+" Heuristic:"+str(el.heuristic)+" Total:"+str(el.totalCost))
 
-            if(showVisualization):
-                if iterations%300==0:
-                    self.showVisualization()
-
             #check if we are at a dead end
             if (len(self.fringe)<1):
                 print("No path found")
@@ -238,6 +236,9 @@ class Tree(ABC):
                     print(str(round(Node.heuristic,2)))
                 else:
                     print("")
+            if(showVisualization):
+                if iterations%100==0:
+                    self.updateVisualization(Node)
 
             #check if the node corresponds with our goal
             if(Node.data==self.goal): #success!

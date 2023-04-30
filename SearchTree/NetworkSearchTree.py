@@ -30,5 +30,6 @@ class NetworkSearchTree(Tree):
 
             childList.append(n)
         return childList
-    def showVisualization(self, node):
+    
+    def updateVisualization(self, node):
         pass

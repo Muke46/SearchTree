@@ -99,6 +99,9 @@ class PathFinding(Tree):
         self.im.set_data(self.vismap)
         self.fig.canvas.draw_idle()
         plt.pause(0.1)
+    
+    def updateVisualization(self, node):
+        pass
 
     def expandNode(self, node):
         if self.showVisualization:

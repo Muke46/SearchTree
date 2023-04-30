@@ -8,7 +8,7 @@ import math
 # Zoom with mousewheel, pan with left mouse button
 # Print a snapshot of the screen with "P"
 
-sprite_sheet = pg.image.load('D:\\Files\\Git\\SearchTree\\SearchTree\\map2.png')
+sprite_sheet = pg.image.load('.\\SearchTree\\map2.png')
 SCREEN_WIDTH = sprite_sheet.get_rect().size[0]
 SCREEN_HEIGHT = sprite_sheet.get_rect().size[1]
 screen = pg.display.set_mode((800, 600)) #set_mode((1600, 900))

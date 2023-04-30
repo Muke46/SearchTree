@@ -34,7 +34,6 @@ class Tree(ABC):
             el.ID=self.ID
             self.ID+=1
 
-
     def removeNode(self, node):
         node.kill_node()
 
@@ -46,7 +45,7 @@ class Tree(ABC):
             p = p.parent
         return depth
 
-    def printTree(self):  #TODO remove from the node class
+    def printTree(self):
         self.root.print_tree()
 
     def resetTree(self):
@@ -129,8 +128,8 @@ class Tree(ABC):
         
     @abstractmethod
     def expandNode(self, node):
-        #return child list
         pass
+
     def deleteRepeats(self,childList, node, avoidRepeat):
         if(avoidRepeat!='None'):
             for el in list(childList): #iterate over a copy of the list
@@ -148,9 +147,6 @@ class Tree(ABC):
                                 break
                             p=p.parent
                         continue
-                    case "currentTree": #check in the current search tree
-                        if el.hash in self.hashl:
-                            childList.remove(el)
                     case "Tree":
                         if el.hash in self.hashl:
                             childList.remove(el)
@@ -174,20 +170,50 @@ class Tree(ABC):
                     el.actionCost=self.getActionCost(el.parent, el)+el.parent.actionCost
                     el.totalCost=el.heuristic+el.actionCost
                     self.fringe.append(el)
+
     @abstractmethod
     def updateVisualization(self, node):
         pass
 
     def find(self, goal=None, searchtype='BFS', avoidRepeat='path', print_steps=False, stepByStep=False, showVisualization=False, iteractionsLimit=-1):
-        start_time = time.time() #save the starting time
+        """
+        Main method, used to find the solution in the initialized search tree
+
+        goal -> represents the objective of the search
+
+        searchtype  -> BFS, Breadth-first search
+                    -> DFS, Deep-first search
+                    -> IDDFS, Iterative Deepening Deep-first search
+                    -> Greedy BFS, Greedy Best-first search
+                    -> A*
+                    -> IDA*, Iterative Deepening A*
+
+        avoidRepeat -> parent, check only if the parent is the same
+                    -> path, searches in the path between the root node and the current node
+                    -> Tree, searches in all the tree
+
+        print_steps -> If true, it prints the tree, the fringe at every iteration
+
+        stepByStep  -> If true, starts in a interactive mode, in which executes one iteration at the time waiting for the user input
+
+        showVisualization -> If true, calls the method UpdateVisualization every 100 iterations
+
+        iteractionsLimit -> Limit the iteraction number, set to -1 to disable
+        """
         
+        #save the starting time
+        start_time = time.time() 
+        
+        #set up some local variables
         self.showVisualization=showVisualization
         if goal!= None: self.goal=goal
 
+        #check if a goal was given
         if self.goal==None:
             print("No goal given")
             return []
 
+        #initialize the root node
         if searchtype in ['A*', 'IDA*', 'GreedyBFS']:
             self.root.heuristic=self.getHeuristic(self.root)
         if searchtype in ['A*', 'IDA*']:
@@ -196,6 +222,7 @@ class Tree(ABC):
         if searchtype == 'IDA*':
             self.ALimit = self.root.totalCost
 
+        #initialize the fringe
         self.fringe=[self.root]
 
         #count the iteration to show stats at the end of the search or to limit them
@@ -204,7 +231,10 @@ class Tree(ABC):
         #for memory usage stats
         removed_nodes=0 
         max_nodes=0
+
+        #Main loop
         while(1):
+            #debug code
             if(print_steps):
                 print("Step: "+str(iterations))
                 if searchtype=='IDDFS':
@@ -227,7 +257,8 @@ class Tree(ABC):
             
             #choose the next node
             Node=self.chooseNextNode(searchtype, print_steps)
-
+            
+            #debug code
             if(print_steps):
                 print("Choosen node: "+str(Node.data),end='')
                 if searchtype=='A*':
@@ -236,8 +267,10 @@ class Tree(ABC):
                     print(str(round(Node.heuristic,2)))
                 else:
                     print("")
+
+            #if enabled, update the visualization
             if(showVisualization):
-                if iterations%100==0:
+                if iterations%100==0: #update visualization every 100 iterations
                     self.updateVisualization(Node)
 
             #check if the node corresponds with our goal
@@ -260,14 +293,13 @@ class Tree(ABC):
             #check if there are repeats in the same branch (if selected)
             self.deleteRepeats(childs, Node, avoidRepeat) 
             
+            #if the node has childs, add them to the tree and the fringe
+            #if the node doesn't have childs, it can be removed from the tree
             if(len(childs)>0):
-                #if searchtype=='A*':
-                #    for ch in childs:
-                #        ch.
                 self.addChildsToTree(childs)
                 self.appendToFringe(childs, searchtype) #append to fringe
             else:
-               #if a node have no childs it can be removed from the tree
+               #the node doesn't have childs, so it can be removed from the tree
                 n=Node
                 while n.parent != None: #prune the dead branch, if any
                     n.kill_node()
@@ -278,10 +310,15 @@ class Tree(ABC):
                         n=n.parent
                     else:
                         break
+            
+            #iteractions counter
             iterations+=1
+
+            #track the number of nodes to have some statistics
             if (self.ID-removed_nodes)>max_nodes:
                 max_nodes=self.ID-removed_nodes
 
+            #check if the iteraction limit was reach
             if(iteractionsLimit!=-1):
                 if(iterations>iteractionsLimit):
                     input("Reached interactions limit, press ENTER to exit...")

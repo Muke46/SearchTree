@@ -1,18 +1,20 @@
+import sys
+sys.path.append('../SearchTree')
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 from matplotlib.widgets import RadioButtons, Button, TextBox
 
 from SearchTree import Node, Tree
-from PathFinding import PathFinding
+from SearchTree.PathFindingSearchTree import PathFindingSearchTree
 from math import dist
 
 
 
-class PathFinding_GUI(PathFinding):
+class PathFinding_GUI(PathFindingSearchTree):
     def __init__(self, rootNode=(0,0), path='', walkableColor = [1., 1., 1., 1.], heuristic = 'LineOfSight'):
         super().__init__(rootNode, path, walkableColor, heuristic)
 
-        #self.vismap = mpimg.imread(path)
+        self.vismap = mpimg.imread(path)
 
         self.goal = None
         self.start = None
@@ -137,7 +139,7 @@ class PathFinding_GUI(PathFinding):
         for el in path_found:
             self.vismap[el[0]][el[1]] = [0., 1., 0., 1.]
         self.im.set_data(self.vismap)
-        self.GUI_update
+        self.GUI_update()
 
     def GUI_reset(self, event):
         print("Reset!")

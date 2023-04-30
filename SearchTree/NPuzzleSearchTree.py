@@ -36,6 +36,7 @@ class NPuzzleSearchTree (Tree):
                     goalx=int((val-1)%self.xDim)
                 sum+=abs(x-goalx)+abs(y-goaly)
         return sum
+    
     def getActionCost(self, beginNode, endNode):
         return 1
     def findN(self,n,  nodedata):
@@ -82,5 +83,5 @@ class NPuzzleSearchTree (Tree):
             newNode.parent=node
             childList.append(newNode)
         return childList
-    def showVisualization(self, node):
+    def updateVisualization(self, node):
         pass

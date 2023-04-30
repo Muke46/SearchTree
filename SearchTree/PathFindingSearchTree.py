@@ -7,7 +7,7 @@ from math import dist
 
 
 
-class PathFinding(Tree):
+class PathFindingSearchTree(Tree):
     def __init__(self, rootNode=(0,0), path='', walkableColor = [1., 1., 1., 1.], heuristic = 'LineOfSight'):
         super().__init__(rootNode)
 

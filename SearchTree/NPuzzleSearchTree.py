@@ -9,7 +9,7 @@ class NPuzzleSearchTree (Tree):
         self.xDim = len(rootNode[0])
         self.yDim = len(rootNode)
         self.goal = self.generateGoal()
-        print(self.goal)
+        #print(self.goal)
         
         
     def generateGoal(self):

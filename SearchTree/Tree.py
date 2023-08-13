@@ -211,7 +211,7 @@ class Tree(ABC):
         #check if a goal was given
         if self.goal==None:
             print("No goal given")
-            return []
+            return None
 
         #initialize the root node
         if searchtype in ['A*', 'IDA*', 'GreedyBFS']:
@@ -253,7 +253,7 @@ class Tree(ABC):
             #check if we are at a dead end
             if (len(self.fringe)<1):
                 print("No path found")
-                return []
+                return None
             
             #choose the next node
             Node=self.chooseNextNode(searchtype, print_steps)
@@ -275,17 +275,18 @@ class Tree(ABC):
 
             #check if the node corresponds with our goal
             if(Node.data==self.goal): #success!
-                os.system('cls' if os.name == 'nt' else 'clear') #clear terminal
+                #os.system('cls' if os.name == 'nt' else 'clear') #clear terminal
                 if(print_steps):
                     self.printTree()
-                print("Solution:", end=" ")
-                print(self.pathTo(Node))
-                print("Solution found with "+ str(iterations)+" steps!")
-                print("Elapsed time: "+str(round(time.time() - start_time,2))+" s")
-                print("Expanded nodes: " + str(self.ID))
-                print("Max nodes in memory: "+str(max_nodes))
-                print("Solution found at depth: " +str(Node.get_depth()))
-                return self.pathTo(Node)
+                returnDict={}
+                returnDict["path"]=self.pathTo(Node)
+                returnDict["iterations"]=iterations
+                returnDict["time"]=round(time.time() - start_time,2)
+                returnDict["expNodes"]=self.ID
+                returnDict["maxNodes"]=max_nodes
+                returnDict["Depth"]=Node.get_depth()
+                
+                return returnDict
             
             #expand the node
             childs=self.expandNode(Node) #get the childs list
@@ -321,8 +322,9 @@ class Tree(ABC):
             #check if the iteraction limit was reach
             if(iteractionsLimit!=-1):
                 if(iterations>iteractionsLimit):
-                    input("Reached interactions limit, press ENTER to exit...")
-                    return []
+                    #input("Reached interactions limit, press ENTER to exit...")
+                    #print("Max iterations reached")
+                    return None
             
             if(stepByStep):
                 input("Press Enter to continue...")

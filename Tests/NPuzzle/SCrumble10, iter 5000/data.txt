@@ -1,0 +1,7 @@
+iteration limit: 5000
+solution depth max: 10
+
+A*: 100.00%
+BFS: 99.40%
+DFS: 47.00%
+GreedyBFS: 100.00%

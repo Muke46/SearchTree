@@ -24,6 +24,30 @@ map = {
     "Iasi":           [("Vaslui",92),("Neamt",87)],
     "Neamt":          [("Iasi",87)]
     }   
+
+map = {
+    "Arad": ["Zerind", "Timisoara", "Sibiu"],
+    "Zerind": ["Arad", "Oradea"],
+    "Timisoara": ["Arad", "Lugoj"],
+    "Oradea": ["Zerind", "Sibiu"],
+    "Sibiu": ["Arad", "Oradea", "Rimnicu Vilcea", "Fagaras"],
+    "Lugoj": ["Timisoara", "Mehadia"],
+    "Mehadia": ["Lugoj", "Drobeta"],
+    "Drobeta": ["Mehadia", "Craiova"],
+    "Craiova": ["Drobeta", "Rimnicu Vilcea", "Pitesti"],
+    "Rimnicu Vilcea": ["Sibiu", "Craiova", "Pitesti"],
+    "Fagaras": ["Sibiu", "Bucharest"],
+    "Pitesti": ["Rimnicu Vilcea", "Craiova", "Bucharest"],
+    "Bucharest": ["Fagaras", "Giurgiu", "Pitesti", "Urziceni"],
+    "Giurgiu": ["Bucharest"],
+    "Urziceni": ["Bucharest", "Hirsova", "Vaslui"],
+    "Hirsova": ["Urziceni", "Eforie"],
+    "Eforie": ["Hirsova"],
+    "Vaslui": ["Urziceni", "Iasi"],
+    "Iasi": ["Vaslui", "Neamt"],
+    "Neamt": ["Iasi"]
+}
+
 citiesCoords = {
     "Arad" :          (107,254),
     "Zerind" :        (154,146),

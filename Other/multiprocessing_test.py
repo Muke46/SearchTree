@@ -13,9 +13,10 @@ logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s')
 
 def generate_puzzle(n_moves):
-    # Create a solved 4x4 grid
-    grid = [[4*j+i+1 for i in range(4)] for j in range(4)]
-    grid[3][3] = 0  # Replace last element with 0 (blank tile)
+    # Create a solved grid
+    dim=4
+    grid = [[dim*j+i+1 for i in range(dim)] for j in range(dim)]
+    grid[dim-1][dim-1] = 0  # Replace last element with 0 (blank tile)
 
     # Shuffle the grid by making random moves
     for _ in range(n_moves):
@@ -23,17 +24,17 @@ def generate_puzzle(n_moves):
         row, col = find_blank(grid)
         if row > 0:
             possible_moves.append((row - 1, col))  # Move blank tile up
-        if row < 3:
+        if row < dim-1:
             possible_moves.append((row + 1, col))  # Move blank tile down
         if col > 0:
             possible_moves.append((row, col - 1))  # Move blank tile left
-        if col < 3:
+        if col < dim-1:
             possible_moves.append((row, col + 1))  # Move blank tile right
         new_row, new_col = random.choice(possible_moves)
         grid[row][col], grid[new_row][new_col] = grid[new_row][new_col], grid[row][col]
 
     # Convert grid to the desired format and return
-    return [[grid[i][j] for j in range(4)] for i in range(4)]
+    return [[grid[i][j] for j in range(dim)] for i in range(dim)]
 
 def find_blank(grid):
     size = len(grid) #Square grid only
@@ -62,7 +63,7 @@ def solve_puzzle(alg, puzzle, iteractionsLimit):
 n=4
 
 def main():
-    num_iterations = int(63)
+    num_iterations = int(100)
     num_processes = multiprocessing.cpu_count()  # Number of CPU cores
     
     start_time = time.time()
@@ -90,11 +91,13 @@ def main():
         for i in range(n):
             print(f'Mosse: {n_moves[i]}', end='')
             for j, alg in enumerate(algList):
-                r=results[j+i*n].get()
-                if r==None: print('\t-', end='')
+                r=results[i+j*n].get()
+                if r==None: 
+                    print('\t-', end='')
                 else: 
-                    r=r['iterations']
-                    print(f'\t{alg} {r}', end='')
+                    d=r['Depth']
+                    a=r['Algorithm']
+                    print(f'\t{a} {d}', end='')
             print('\n')
 
         for result in results:

@@ -1,0 +1,4 @@
+A*  Solved in 5.49s  e 16974 iterazioni.     Path lenght 473
+BFS Solved in 17.74s e 32255 iterazioni.     Path lenght 473
+DFT Solved in 21.50s e 31663 iterazioni.     Path lenght 5425
+GreedyBFS Solved in 0.50s e 4374 iterazioni. Path lenght 515

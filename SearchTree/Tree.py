@@ -209,9 +209,9 @@ class Tree(ABC):
         if goal!= None: self.goal=goal
 
         #check if a goal was given
-        if self.goal==None:
-            print("No goal given")
-            return None
+        #if self.goal==None:
+        #    print("No goal given")
+        #    return None
 
         #initialize the root node
         if searchtype in ['A*', 'IDA*', 'GreedyBFS']:

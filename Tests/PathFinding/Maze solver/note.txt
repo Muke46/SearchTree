@@ -1,0 +1,12 @@
+201 x 151
+A*:  Solved in 2.45s e 12766 iterazioni. Path lenght 5417
+BFS: Solved in 2.61s e 13160 iterazioni. Path lenght 5417
+DFS: Solved in 0.82s e 6300 iterazioni. Path lenght 5417
+Greedy: Solved in 1.21s e 8021 iterazioni. Path lenght 5417
+
+699 x 1079
+A*: 110k: Solved in 282.97s e 124980 iterazioni Path lenght 42151
+BFS: 100k: Solved in 173.13s e 126352 iterazioni Path lenght 42151
+DFS: 94k Solved in 46.76s e 63010 iterazioni Path lenght 42151
+GreedyBFS: 100k Solved in 82.39s e 85834 iterazioni. Path lenght 42151
+
